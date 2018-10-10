@@ -112,38 +112,91 @@
           <v-alert type="warning" :value="true">stop it!</v-alert>
           <v-alert type="success" :value="true">Great!</v-alert>
           <v-alert type="info" :value="true">what ?!</v-alert>
-          <v-alert type="error" :value="true">that' it man</v-alert>
+          <h2 class="mt-3">Here we use Axios</h2>
+          <v-alert type="error" :value="true">{{status}}</v-alert>
         </v-card>
       </v-tab-item>
       <v-tab-item
         :id="'tab-4'"
         :key="4"
       >
-        <v-card flat>
-          <h2 class="pt-5 pb-3">These are buttons examples </h2>
+        <h2 class="pt-5 pb-3">These are buttons examples </h2>
+        <v-layout flat>
           <v-layout row wrap>
             <v-flex lg2 xs4 v-for="( cls, index ) in classes" :key="index">
               <v-btn v-bind:color="cls" class="my-3">{{cls}}</v-btn>
             </v-flex>
           </v-layout>
-        </v-card>
+        </v-layout>
+        <h2 class="pt-5 pb-3">Here we use Axios </h2>
+        <v-layout row wrap>
+          <v-flex lg4 xs-4>
+            <v-btn color="secondary" class="ml-0" @click="bitCoin()">CLICK HERE to get Bitcoin Price Index</v-btn>
+            <v-card dark color="secondary">
+              <div v-for="currency in info" class="currency">
+               <v-card-text class="px-3 description"> {{ currency.description }}:
+                 <span v-html="currency.symbol"></span><span>{{ currency.rate_float | currencydecimal }}</span>
+                </v-card-text>
+              </div>
+            <small>{{date}}</small>
+           </v-card>
+          </v-flex>
+          </v-layout>
       </v-tab-item>
     </v-tabs>
   </v-container>
 </template>
 <script>
+  import axios from 'axios'
   export default {
     data: () => ({
       slider: 128,
       tile: false,
+      info: '',
+      date: '',
       text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
       classes: [
         'error', 'success', 'info', 'warning', 'primary', 'secondary'
-      ]
+      ],
+      status: 'Hello World'
     }),
     computed: {
       avatarSize () {
         return `${this.slider}px`
+      }
+    },
+    created () {
+      this.loadQuote()
+    },
+    filters: {
+      currencydecimal (value) {
+        return value.toFixed(2)
+      }
+    },
+    methods: {
+      loadQuote: function () {
+        this.status = 'loading...'
+        var vm = this
+        axios
+          .get('http://ron-swanson-quotes.herokuapp.com/v2/quotes')
+          .then(function (response) {
+            vm.status = response.data[0]
+          })
+          .catch(function (error) {
+            vm.status = 'there is an error ' + error
+          })
+      },
+      bitCoin () {
+        var BC = this
+        axios
+          .get('https://api.coindesk.com/v1/bpi/currentprice.json')
+          .then(response => {
+            BC.info = response.data.bpi
+            BC.date = 'This was updated in ' + response.data.time.updated
+          })
+          .catch(function (error) {
+            BC.status = 'there is an error ' + error
+          })
       }
     }
   }
@@ -172,5 +225,16 @@
   }
   .v-alert {
     border-radius: 100px;
+  }
+  .description{
+    color: #00bcd4;
+    font-size: 1.5em;
+  }
+  .description span{
+    color: white;
+  }
+ small{
+    color: #424242;
+   float: right;
   }
 </style>
